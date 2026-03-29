@@ -39,6 +39,7 @@ Why this is the leading option:
 - `component-options.md`: candidate silicon, modules, and supporting hardware
 - `power-budget.md`: battery and current draw constraints, especially around `CR2032`
 - `prototype-paths.md`: concrete prototype directions and recommended MVP
+- `pi3-sensehat-prototype.md`: powered prototype guide using a `Raspberry Pi 3` and `Sense HAT`
 - `bom/`: early bill-of-materials drafts
 - `enclosure/`: mounting and form-factor notes
 
