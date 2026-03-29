@@ -16,16 +16,16 @@ Default behavior:
 
 - hand-buildable from off-the-shelf parts
 - low power, with `CR2032` support as a preferred target
-- wireless via `BLE` or `Wi-Fi`
+- wireless on the button via `BLE`
 - configurable identity, recipient, and behavior
 - simple bedside enclosure, with 3D printing as an acceptable path
 
 ## Current Recommendation
 
-The most realistic first prototype is:
+The selected first prototype path is:
 
 - a `BLE` button built around a low-power radio MCU such as Nordic `nRF52` or Silicon Labs `EFR32BG22`
-- a powered gateway such as `ESP32-C3` or Raspberry Pi that receives the button event and triggers SMS and optional voice through a cloud API
+- a powered relay such as Raspberry Pi or another always-on `BLE` receiver that receives the button event and triggers SMS and optional voice through a cloud API
 
 Why this is the leading option:
 
@@ -35,7 +35,7 @@ Why this is the leading option:
 
 ## Files In This Folder
 
-- `system-options.md`: architecture comparison across BLE, Wi-Fi, phone relay, and gateway relay
+- `system-options.md`: architecture comparison for the selected `BLE` path and the remaining relay options
 - `component-options.md`: candidate silicon, modules, and supporting hardware
 - `power-budget.md`: battery and current draw constraints, especially around `CR2032`
 - `prototype-paths.md`: concrete prototype directions and recommended MVP
@@ -46,16 +46,12 @@ Why this is the leading option:
 
 ```mermaid
 flowchart TD
-    startNode["Need small bedside button"] --> powerChoice{"Coin-cell life required?"}
-    powerChoice -->|Yes| blePath["BLE button"]
-    powerChoice -->|No| wifiPath["Wi-Fi button"]
+    startNode["Need small bedside button"] --> blePath["BLE button"]
     blePath --> relayChoice{"Relay path"}
     relayChoice -->|Phone| phonePath["Mobile app relay"]
-    relayChoice -->|Hub| hubPath["Powered gateway relay"]
-    wifiPath --> cloudPath["Direct cloud alert"]
-    phonePath --> comparePath["Compare reliability, setup, and power"]
+    relayChoice -->|Gateway| hubPath["Powered BLE relay"]
+    phonePath --> comparePath["Compare reliability and setup"]
     hubPath --> comparePath
-    cloudPath --> comparePath
     comparePath --> recommendPath["Choose MVP path"]
 ```
 

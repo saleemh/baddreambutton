@@ -1,6 +1,6 @@
 # System Options
 
-This document compares the main architecture patterns for the Bad Dream Button.
+This document compares the `BLE`-based architecture patterns for the Bad Dream Button.
 
 ## Evaluation Criteria
 
@@ -49,35 +49,22 @@ Weaknesses:
 - gateway setup adds some installation overhead
 - alert path depends on local power and network availability
 
-## Option 3: Wi-Fi Button Direct To Cloud
+## Non-Selected Path: Direct Wi-Fi Button
 
-Flow:
+This path is not part of the current spec.
 
-`Button -> Wi-Fi -> cloud API -> SMS / voice`
-
-Strengths:
-
-- no phone or gateway needed once configured
-- straightforward cloud event model
-- easiest architecture to explain to users
-
-Weaknesses:
+Reason it was not selected:
 
 - much worse power profile than `BLE`
-- hard fit for `CR2032` because of connection and transmit current spikes
-- Wi-Fi provisioning and password changes create support burden
+- poor fit for a `CR2032` bedside button
+- adds provisioning and support complexity before the core product is proven
 
-## Option 4: Hybrid Provisioning Or Hybrid Delivery
+## Optional Future Path: BLE Hybrid Delivery
 
 Examples:
 
-- `BLE` for initial provisioning, `Wi-Fi` for live alerts
-- `BLE` primary to gateway, with another fallback path later
-
-Strengths:
-
-- can improve user experience by simplifying setup
-- allows a long-term architecture that supports more than one deployment style
+- `BLE` primary to powered gateway, with a phone-relay backup later
+- `BLE` configuration mode with a more advanced relay stack in the future
 
 Weaknesses:
 
@@ -91,8 +78,7 @@ Weaknesses:
 | --- | --- | --- | --- | --- | --- | --- |
 | `BLE -> phone` | Excellent | Fair | High | High | Medium | Variable |
 | `BLE -> gateway` | Excellent | Good | Medium | Medium | Good | Low to medium |
-| `Wi-Fi -> cloud` | Fair | Good | Medium | Medium | Good | Medium |
-| `Hybrid` | Mixed | Good to very good | High | High | Mixed | Tunable |
+| `BLE hybrid` | Excellent to mixed | Good to very good | High | High | Mixed | Tunable |
 
 ## Recommendation
 
@@ -110,13 +96,13 @@ Reasoning:
 | Product Priority | Best Choice | Why |
 | --- | --- | --- |
 | Maximize battery life | `BLE -> gateway` | Keeps the button mostly asleep and avoids Wi-Fi bursts |
-| Lowest hardware count | `Wi-Fi -> cloud` | One device path, but with worse power tradeoffs |
+| Lowest added hardware count | `BLE -> phone` | Can work without adding a dedicated relay device |
 | Fastest demo using existing devices | `BLE -> phone` | Can work without adding a dedicated hub |
-| Best long-term flexibility | `BLE -> gateway`, then optional hybrid | Simple MVP with room to add provisioning or other transports later |
+| Best long-term flexibility | `BLE -> gateway`, then optional hybrid | Simple MVP with room to add a backup relay later |
 
 ## Notes For The Software Stack
 
-Whichever path is chosen, the software system should eventually define a shared event contract for a button press, such as:
+For the selected `BLE` path, the software system should define a shared event contract for a button press, such as:
 
 - device identifier
 - human-readable button name

@@ -1,6 +1,6 @@
 # Prototype Paths
 
-This document turns the architecture options into concrete prototype directions.
+This document turns the selected `BLE` architecture into concrete prototype directions.
 
 ## Prototype A: BLE Button Plus Powered Gateway
 
@@ -10,7 +10,7 @@ Status:
 
 System flow:
 
-`Button -> BLE -> local gateway -> cloud service -> SMS / optional voice`
+`Button -> BLE -> local relay -> cloud service -> SMS / optional voice`
 
 Why this path leads:
 
@@ -22,13 +22,13 @@ Why this path leads:
 Suggested hardware:
 
 - button: Nordic `nRF52832` or Silicon Labs `EFR32BG22`
-- gateway: `ESP32-C3` dev board or Raspberry Pi
+- relay: Raspberry Pi or another always-on `BLE` receiver
 - battery: `CR2032`
 
 Recommended first build:
 
 1. Build a button prototype that wakes on press and emits a compact `BLE` event.
-2. Build a powered gateway that receives the event and forwards it to a simple backend or webhook.
+2. Build a powered relay that receives the event and forwards it to a simple backend or webhook.
 3. Have the backend trigger SMS first, then optionally voice escalation.
 
 ## Prototype B: BLE Button Plus Smartphone App
@@ -56,11 +56,11 @@ Suggested use:
 - short-term concept demo
 - internal development aid, not the only shipping path
 
-## Prototype C: Wi-Fi Button Direct To Cloud
+## Archived Reference: Wi-Fi Button Direct To Cloud
 
 Status:
 
-- viable if power constraints are relaxed
+- not selected for the current spec
 
 System flow:
 
@@ -79,16 +79,15 @@ Main risk:
 
 Suggested use:
 
-- later evaluation path
-- acceptable if a wall-powered puck is allowed
+- reference only if the product direction changes substantially later
 
 ## Prototype Selection Matrix
 
 | Prototype | Best For | Key Risk | Recommended Timing |
 | --- | --- | --- | --- |
-| `A: BLE + gateway` | Realistic low-power MVP | Requires extra powered device | First |
+| `A: BLE + relay` | Realistic low-power MVP | Requires extra powered device | First |
 | `B: BLE + phone` | Fast demo and UX validation | Phone reliability | Secondary |
-| `C: Wi-Fi direct` | Simplest user story | Coin-cell power mismatch | Later |
+| `C: Wi-Fi direct` | Reference only | Coin-cell power mismatch | Not selected |
 
 ## MVP Recommendation
 
@@ -104,6 +103,6 @@ Reasoning:
 ## Suggested Phase Order
 
 1. Validate the button press to `BLE` event path.
-2. Validate a local gateway receiving the event reliably in a bedroom-like environment.
+2. Validate a local relay receiving the event reliably in a bedroom-like environment.
 3. Validate SMS delivery and optional phone call through a backend service.
-4. Revisit whether a phone-relay or direct `Wi-Fi` path is worth supporting later.
+4. Revisit whether a phone-relay backup path is worth supporting later.

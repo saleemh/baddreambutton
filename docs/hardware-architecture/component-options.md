@@ -74,23 +74,23 @@ Tradeoffs:
 - not the simplest first path for a small battery button
 - power tuning may take more effort than the leading `BLE` options
 
-### `ESP32-C3`
+### Raspberry Pi Or Linux SBC Relay
 
 Best for:
 
-- powered gateway hardware
-- wall-powered or larger-battery `Wi-Fi` prototypes
+- powered `BLE` relay hardware
+- fast proof of concept with logging and retry logic
 
 Why it fits:
 
-- inexpensive and available everywhere
-- supports both `Wi-Fi` and `BLE`
-- easy to connect to cloud APIs from a prototype
+- easy to prototype with off-the-shelf parts
+- can host `BLE` receive logic and relay services together
+- avoids putting `Wi-Fi` requirements on the bedside button spec
 
 Tradeoffs:
 
-- direct `Wi-Fi` alerts are a poor fit for a `CR2032`
-- many dev boards have poor idle power because of extra regulator, USB, and LED overhead
+- physically larger than an eventual appliance-style relay
+- higher cost than a minimal embedded receiver
 
 ## Module And Board Strategy
 
@@ -102,7 +102,7 @@ For early hardware work, use:
 Recommended practical split:
 
 - button prototype: small `BLE` module on a simple carrier or breakout
-- gateway prototype: `ESP32-C3` dev board or Raspberry Pi on USB power
+- relay prototype: Raspberry Pi or another powered `BLE` receiver
 
 ## Supporting Electrical Parts
 
@@ -128,7 +128,7 @@ Useful support parts:
 - bulk capacitor near the radio supply path
 - careful brownout behavior to survive short transmit bursts
 
-This is especially important for coin-cell `BLE` designs and critical for any attempt at `Wi-Fi`.
+This is especially important for coin-cell `BLE` designs.
 
 ### LED And Feedback
 
@@ -151,16 +151,9 @@ Helpful for support and setup:
 - long-press button behavior for configuration mode
 - dedicated secondary setup pad if needed during early prototypes
 
-## Gateway Candidates
+## Relay Candidates
 
-### `ESP32-C3` Gateway
-
-Good for:
-
-- low-cost proof of concept
-- BLE receive plus `Wi-Fi` cloud forwarding
-
-### Raspberry Pi Gateway
+### Raspberry Pi Relay
 
 Good for:
 
@@ -170,6 +163,17 @@ Good for:
 Tradeoff:
 
 - much larger and less appliance-like than an eventual product gateway
+
+### Dedicated BLE Receiver
+
+Good for:
+
+- a later, smaller relay appliance
+- a more product-like always-on receiver
+
+Tradeoff:
+
+- requires more embedded work than a Raspberry Pi proof of concept
 
 ## Mechanical And Enclosure Support
 
@@ -185,6 +189,6 @@ Early enclosure support should consider:
 For the first prototype cycle, the highest-value shortlist is:
 
 - button MCU: Nordic `nRF52832` or Silicon Labs `EFR32BG22`
-- gateway MCU: `ESP32-C3`
+- relay hardware: Raspberry Pi or similar powered `BLE` receiver
 - battery: `CR2032` for `BLE` button only
 - enclosure: simple 3D-printed bedside puck with adhesive backing

@@ -1,6 +1,6 @@
 # BLE Gateway Prototype BOM
 
-This draft BOM supports the recommended MVP: a `BLE` coin-cell button with a powered local gateway.
+This draft BOM supports the recommended MVP: a `BLE` coin-cell button with a powered local relay.
 
 ## Button Side
 
@@ -13,17 +13,17 @@ This draft BOM supports the recommended MVP: a `BLE` coin-cell button with a pow
 | Bulk capacitor | Peak current support | Place close to module supply |
 | Optional low-current LED | Brief status feedback | Keep off by default |
 
-## Gateway Side
+## Relay Side
 
 | Part | Role | Notes |
 | --- | --- | --- |
-| `ESP32-C3` dev board or Raspberry Pi | Always-on gateway | USB powered |
-| USB power supply | Gateway power | Bedside or nearby outlet |
-| Local network connection | Cloud access | `Wi-Fi` or Ethernet depending on gateway |
+| Raspberry Pi or similar powered `BLE` receiver | Always-on relay | USB powered |
+| USB power supply | Relay power | Bedside or nearby outlet |
+| Local network connection | Cloud access | Ethernet or other powered host connectivity |
 
 ## Software Notes
 
-The gateway should:
+The relay should:
 
 - listen for the button event
 - forward the event to a backend or webhook

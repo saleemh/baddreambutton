@@ -1,6 +1,6 @@
 # Power Budget And Battery Constraints
 
-This document explains where a `CR2032` is realistic for the Bad Dream Button and where it is not.
+This document explains the power constraints for the selected `BLE` button architecture.
 
 ## Primary Power Assumption
 
@@ -16,26 +16,32 @@ That usage pattern strongly favors a low-power `BLE` design.
 
 `CR2032` is realistic when all of the following are true:
 
-- the button uses `BLE` rather than direct `Wi-Fi`
+- the button uses `BLE`
 - the device spends nearly all of its time in deep sleep
 - radio activity is short and infrequent
 - the power path is designed to tolerate short transmit bursts
 
 `CR2032` becomes a poor fit when:
 
-- the device must join `Wi-Fi` on demand
+- the design tries to do too much work on each press
 - the design needs high peak current repeatedly
 - LEDs, buzzers, or periodic reporting are active too often
 
-## Why `Wi-Fi` Is Hard On A Coin Cell
+## Why The Relay Should Handle Network Delivery
 
-Direct `Wi-Fi` requires:
+The bedside button should stay focused on:
 
-- scanning and associating with an access point
-- performing network setup such as DHCP and TLS
-- transmitting at current levels that can exceed what a coin cell handles comfortably
+- waking on press
+- sending a short `BLE` event
+- returning to sleep quickly
 
-Even if the average energy per day looks low, the peak current behavior makes reliable `CR2032` operation difficult. A bench prototype may appear to work and still fail in real bedrooms as the battery ages, temperature drops, or the radio link gets weaker.
+The powered relay can handle:
+
+- event receipt
+- timestamp normalization
+- cloud delivery
+- retries
+- SMS and optional voice workflows
 
 ## Rough Design Guidance
 
@@ -55,7 +61,6 @@ Even if the average energy per day looks low, the peak current behavior makes re
 
 ### Poor Fit
 
-- direct `Wi-Fi` from `CR2032`
 - direct cellular path from the button
 - continuous beeping, lighting, or other active feedback
 
@@ -93,13 +98,13 @@ Coin cells benefit from:
 
 ## Battery Alternatives
 
-If the product later needs direct `Wi-Fi`, higher confidence radio retries, or louder feedback, consider moving away from `CR2032`.
+If the product later needs more complex button-side behavior, stronger local feedback, or a larger enclosure, consider moving away from `CR2032`.
 
 Better alternatives:
 
 - `CR2450` for more capacity and somewhat better headroom in a still-compact form factor
 - small rechargeable `LiPo` if periodic charging is acceptable
-- USB or mains power for the gateway and possibly for a bedside `Wi-Fi` puck
+- USB or mains power for the relay hardware
 
 ## Recommended Power Direction
 

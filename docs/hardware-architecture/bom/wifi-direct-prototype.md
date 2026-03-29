@@ -1,5 +1,7 @@
 # Wi-Fi Direct Prototype BOM
 
+Archived reference only. This path is not part of the current `BLE`-first spec.
+
 This draft BOM supports a direct `Wi-Fi` button that calls a cloud service without a local gateway.
 
 ## Device Side

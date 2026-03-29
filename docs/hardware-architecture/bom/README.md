@@ -8,4 +8,6 @@ Current draft sets:
 - `ble-phone-prototype.md`
 - `wifi-direct-prototype.md`
 
+The `BLE` drafts are the active paths. The `Wi-Fi` draft is kept only as an archived reference in case the product direction changes later.
+
 These are intentionally approximate and focused on off-the-shelf prototyping, not final manufacturing.
