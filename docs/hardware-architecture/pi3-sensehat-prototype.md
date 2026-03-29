@@ -294,6 +294,152 @@ Run the runtime directly with:
 python3 apps/pi-prototype-cli/main.py run
 ```
 
+## Install On The Pi
+
+If the code is currently on a laptop and not yet on the Pi, copy the repository to the Pi first and then run the app there.
+
+This section assumes:
+
+- the repo exists on the laptop
+- the Pi is already reachable over `SSH`
+- the Pi username is something like `saleem`
+- the Pi hostname is something like `baddream-prototype.local`
+
+### Option A: Copy The Whole Repo From The Laptop
+
+On the laptop, from the parent directory of the repo:
+
+```bash
+scp -r baddreambutton saleem@baddream-prototype.local:~/
+```
+
+That copies the full repo to:
+
+```text
+/home/saleem/baddreambutton
+```
+
+If you prefer using the Pi IP directly:
+
+```bash
+scp -r baddreambutton saleem@192.168.1.42:~/
+```
+
+### Option B: Copy Only The Current Version Again Later
+
+If you already copied the repo once and want to overwrite it with the latest local version, use:
+
+```bash
+scp -r baddreambutton saleem@baddream-prototype.local:~/
+```
+
+This is simple, but it recopies the entire directory each time.
+
+### Verify The Files On The Pi
+
+After copying, connect to the Pi:
+
+```bash
+ssh saleem@baddream-prototype.local
+```
+
+Then check the repo:
+
+```bash
+cd ~/baddreambutton
+ls
+ls apps/pi-prototype-cli
+```
+
+You should see:
+
+- `apps/`
+- `docs/`
+- `services/`
+- `firmware/`
+- `sdk/`
+
+And inside the app folder:
+
+- `main.py`
+- `README.md`
+- `baddream_pi/`
+
+### Install Dependencies On The Pi
+
+Once connected to the Pi and inside the repo:
+
+```bash
+cd ~/baddreambutton
+sudo apt update
+sudo apt full-upgrade -y
+sudo apt install -y python3 python3-sense-hat python3-requests sense-hat bluez bluetooth pi-bluetooth git curl
+```
+
+### Start The Setup Wizard
+
+From the repo root on the Pi:
+
+```bash
+cd ~/baddreambutton
+python3 apps/pi-prototype-cli/main.py
+```
+
+That opens the terminal wizard and lets you:
+
+- update package lists
+- upgrade outdated system packages
+- install required dependencies
+- configure the prototype
+- test the `Sense HAT`
+- install the `systemd` service
+
+### Run The Prototype Directly
+
+If you want to skip the wizard and run the prototype runtime:
+
+```bash
+cd ~/baddreambutton
+python3 apps/pi-prototype-cli/main.py run
+```
+
+### Test The Hardware Only
+
+To only test the `Sense HAT` joystick and LEDs:
+
+```bash
+cd ~/baddreambutton
+python3 apps/pi-prototype-cli/main.py test-hardware
+```
+
+### Where The App Stores Config
+
+By default, the app saves its config on the Pi here:
+
+```text
+~/.config/baddream-button/config.json
+```
+
+The runtime also logs button events locally under the Pi user's home directory.
+
+### If `scp` Fails
+
+Common fixes:
+
+- confirm the Pi hostname or IP address
+- verify `SSH` still works
+- make sure both devices are on the same network
+- try using the IP address instead of `.local`
+- if permission is denied, confirm the Pi username is correct
+
+### Recommended First Run Sequence
+
+1. Copy the repo from the laptop to the Pi with `scp`.
+2. `SSH` into the Pi.
+3. `cd ~/baddreambutton`
+4. run `python3 apps/pi-prototype-cli/main.py`
+5. use the wizard to install packages, save config, test hardware, and start the runtime
+
 ## Step 10: Recommended First Implementation Order
 
 Build the prototype in small stages:

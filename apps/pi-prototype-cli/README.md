@@ -29,6 +29,10 @@ It is designed to run over a normal terminal session, including `ssh` or `Raspbe
 
 ## Run It On The Pi
 
+If the code starts on a laptop and needs to be copied to the Pi first, see the `Install On The Pi` section in:
+
+- `docs/hardware-architecture/pi3-sensehat-prototype.md`
+
 From the repo root:
 
 ```bash
