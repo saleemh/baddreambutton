@@ -17,6 +17,7 @@ and back:
 
 - `services/openclaw-bridge/`: Linux-side bridge service
 - `apps/pi-prototype-cli/`: Pi-side prototype app
+- `always-on-services.md`: how to make the bridge, tunnel, and runtime start automatically
 
 ## Assumptions
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import socket
 import time
+import unicodedata
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -17,6 +18,8 @@ from .ui import error, heading, info, success, warn
 
 
 LOG_PATH = Path.home() / ".local" / "state" / "baddream-button" / "events.log"
+DISPLAY_MAX_CHARS = 96
+DISPLAY_ALLOWED = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,!?:;'-()/")
 
 
 class PrototypeRuntime:
@@ -175,9 +178,12 @@ class PrototypeRuntime:
             reply_id = str(reply.get("reply_id", "")).strip()
             if not reply_text or not reply_id:
                 continue
+            display_text = self.sanitize_for_display(reply_text)
+            if not display_text:
+                continue
             self.display.flash_reply()
-            print(info(f"New WhatsApp reply: {reply_text}"))
-            self.display.show_text(reply_text, BLUE)
+            print(info(f"New WhatsApp reply: {display_text}"))
+            self.display.show_text(display_text, BLUE)
             self.acknowledge_reply(reply_id)
             self.refresh_ready_state()
 
@@ -238,6 +244,18 @@ class PrototypeRuntime:
         if extra:
             headers.update(extra)
         return headers
+
+    def sanitize_for_display(self, text: str) -> str:
+        normalized = unicodedata.normalize("NFKD", text)
+        ascii_text = normalized.encode("ascii", "ignore").decode("ascii")
+        upper = ascii_text.upper()
+        cleaned = "".join(ch if ch in DISPLAY_ALLOWED else " " for ch in upper)
+        cleaned = " ".join(cleaned.split()).strip()
+        if not cleaned:
+            return ""
+        if len(cleaned) > DISPLAY_MAX_CHARS:
+            cleaned = cleaned[: DISPLAY_MAX_CHARS - 3].rstrip() + "..."
+        return cleaned
 
 
 def print_config_summary(config: AppConfig) -> None:

@@ -1,0 +1,14 @@
+[Unit]
+Description=Bad Dream Button SSH Tunnel To OpenClaw Bridge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=saleem
+ExecStart=/usr/bin/ssh -NT -L 8787:127.0.0.1:8787 saleem@saleem.net -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -o BatchMode=yes
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

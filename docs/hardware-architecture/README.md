@@ -41,6 +41,7 @@ Why this is the leading option:
 - `prototype-paths.md`: concrete prototype directions and recommended MVP
 - `pi3-sensehat-prototype.md`: powered prototype guide using a `Raspberry Pi 3` and `Sense HAT`
 - `openclaw-whatsapp-bridge.md`: two-way WhatsApp bridge setup using OpenClaw on Linux
+- `always-on-services.md`: systemd setup for Linux bridge, Pi tunnel, and Pi runtime
 - `bom/`: early bill-of-materials drafts
 - `enclosure/`: mounting and form-factor notes
 

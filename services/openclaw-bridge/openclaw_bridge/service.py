@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 import threading
 import time
@@ -40,6 +41,7 @@ class BridgeState:
     current_device_name: str = ""
     transcript_offset: int = 0
     seen_reply_ids: list[str] = field(default_factory=list)
+    recent_outbound_hashes: dict[str, str] = field(default_factory=dict)
     devices: dict[str, DeviceState] = field(default_factory=dict)
 
     @classmethod
@@ -58,6 +60,7 @@ class BridgeState:
             current_device_name=raw.get("current_device_name", ""),
             transcript_offset=raw.get("transcript_offset", 0),
             seen_reply_ids=raw.get("seen_reply_ids", []),
+            recent_outbound_hashes=raw.get("recent_outbound_hashes", {}),
             devices=devices,
         )
 
@@ -67,6 +70,7 @@ class BridgeState:
             "current_device_name": self.current_device_name,
             "transcript_offset": self.transcript_offset,
             "seen_reply_ids": self.seen_reply_ids[-500:],
+            "recent_outbound_hashes": self.trimmed_recent_outbound_hashes(),
             "devices": {
                 key: {
                     "last_alert_at": value.last_alert_at,
@@ -76,6 +80,9 @@ class BridgeState:
             },
         }
         path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    def trimmed_recent_outbound_hashes(self) -> dict[str, str]:
+        return dict(list(self.recent_outbound_hashes.items())[-200:])
 
 
 class OpenClawBridge:
@@ -116,6 +123,10 @@ class OpenClawBridge:
             alert_mode=alert_mode,
             hostname=hostname,
         )
+
+        with self.lock:
+            self.remember_outbound_text(rendered)
+            self.persist()
 
         ok, detail = self.send_via_openclaw(rendered)
         if not ok:
@@ -248,8 +259,10 @@ class OpenClawBridge:
         if role != "user":
             return None
 
-        text = self.extract_text(entry)
+        text = self.sanitize_reply_text(self.extract_text(entry))
         if not text:
+            return None
+        if self.is_recent_outbound_text(text):
             return None
 
         reply_id = str(self.extract_field(entry, ["id", "message.id", "messageId", "event.id"]))
@@ -286,6 +299,64 @@ class OpenClawBridge:
             if value.get("type") == "text" and "text" in value:
                 return self.extract_text(value["text"])
         return ""
+
+    def sanitize_reply_text(self, text: str) -> str:
+        cleaned = text.strip()
+        if not cleaned:
+            return ""
+
+        # OpenClaw may prepend inbound replies with a metadata preamble like:
+        # Conversation info (untrusted metadata):
+        # ```json
+        # {...}
+        # ```
+        cleaned = re.sub(
+            r"^Conversation info \(untrusted metadata\):\s*```json\s*.*?\s*```\s*",
+            "",
+            cleaned,
+            flags=re.DOTALL,
+        ).strip()
+
+        # If the reply is still wrapped in a fenced block, unwrap it.
+        fenced = re.fullmatch(r"```(?:\w+)?\s*(.*?)\s*```", cleaned, flags=re.DOTALL)
+        if fenced:
+            cleaned = fenced.group(1).strip()
+
+        # Collapse excessive blank lines while preserving paragraph breaks.
+        cleaned = re.sub(r"\n{3,}", "\n\n", cleaned).strip()
+        return cleaned
+
+    def remember_outbound_text(self, text: str) -> None:
+        cleaned = self.sanitize_reply_text(text)
+        if not cleaned:
+            return
+        digest = self.text_digest(cleaned)
+        self.state.recent_outbound_hashes[digest] = utc_now_iso()
+        self.prune_recent_outbound_hashes()
+
+    def is_recent_outbound_text(self, text: str) -> bool:
+        self.prune_recent_outbound_hashes()
+        digest = self.text_digest(text)
+        return digest in self.state.recent_outbound_hashes
+
+    def prune_recent_outbound_hashes(self) -> None:
+        cutoff = datetime.now(timezone.utc) - timedelta(minutes=30)
+        kept: dict[str, str] = {}
+        for digest, timestamp in self.state.recent_outbound_hashes.items():
+            try:
+                dt = datetime.fromisoformat(timestamp)
+            except ValueError:
+                continue
+            if dt >= cutoff:
+                kept[digest] = timestamp
+        self.state.recent_outbound_hashes = kept
+
+    def recent_outbound_hashes_trimmed(self) -> dict[str, str]:
+        self.prune_recent_outbound_hashes()
+        return dict(list(self.state.recent_outbound_hashes.items())[-200:])
+
+    def text_digest(self, text: str) -> str:
+        return hashlib.sha256(text.strip().encode("utf-8")).hexdigest()
 
     def extract_field(self, entry: dict[str, Any], paths: list[str]) -> Any:
         for path in paths:

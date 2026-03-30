@@ -1,0 +1,15 @@
+[Unit]
+Description=Bad Dream Button OpenClaw Bridge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/saleem/baddreambutton
+Environment=BAD_DREAM_BRIDGE_CONFIG=/home/saleem/.config/baddream-button/openclaw-bridge.json
+ExecStart=/usr/bin/python3 /home/saleem/baddreambutton/services/openclaw-bridge/main.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target
