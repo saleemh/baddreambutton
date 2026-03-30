@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 from urllib.request import Request, urlopen
 
 from .config import AppConfig
@@ -26,6 +26,7 @@ class PrototypeRuntime:
         self.last_connectivity_ok = False
         self.last_press_time = 0.0
         self.last_connectivity_check_at = 0.0
+        self.last_reply_poll_at = 0.0
 
     def run(self) -> int:
         hardware = self.display.status()
@@ -58,6 +59,10 @@ class PrototypeRuntime:
                         self.last_connectivity_ok = latest
                         self.refresh_ready_state()
                         print(info(f"Connectivity changed: {'online' if latest else 'offline'}"))
+
+                if now - self.last_reply_poll_at >= self.config.reply_poll_seconds:
+                    self.last_reply_poll_at = now
+                    self.poll_for_replies()
 
                 for event in self.display.joystick_events():
                     if self.display.is_middle_press(event):
@@ -115,7 +120,7 @@ class PrototypeRuntime:
         request = Request(
             self.config.webhook_url,
             data=body,
-            headers={"Content-Type": "application/json"},
+            headers=self.build_headers({"Content-Type": "application/json"}),
             method="POST",
         )
         try:
@@ -132,7 +137,7 @@ class PrototypeRuntime:
             return False, f"Unexpected send error: {exc}."
 
     def check_connectivity(self) -> bool:
-        target_url = self.config.healthcheck_url or self.config.webhook_url
+        target_url = self.config.healthcheck_url or self.config.webhook_url or self.config.reply_poll_url
         if not target_url:
             return True
 
@@ -151,6 +156,88 @@ class PrototypeRuntime:
     def refresh_ready_state(self) -> None:
         state = "ready_connected" if self.last_connectivity_ok else "ready_not_connected"
         self.display.set_state(state)
+
+    def poll_for_replies(self) -> None:
+        reply_url = self.resolve_reply_poll_url()
+        if not reply_url:
+            return
+        ok, replies_or_error = self.fetch_replies(reply_url)
+        if not ok:
+            print(warn(f"Reply poll failed: {replies_or_error}"))
+            return
+
+        replies = replies_or_error
+        if not replies:
+            return
+
+        for reply in replies:
+            reply_text = str(reply.get("text", "")).strip()
+            reply_id = str(reply.get("reply_id", "")).strip()
+            if not reply_text or not reply_id:
+                continue
+            self.display.flash_reply()
+            print(info(f"New WhatsApp reply: {reply_text}"))
+            self.display.show_text(reply_text, BLUE)
+            self.acknowledge_reply(reply_id)
+            self.refresh_ready_state()
+
+    def resolve_reply_poll_url(self) -> str:
+        if self.config.reply_poll_url:
+            return self.config.reply_poll_url
+        if not self.config.webhook_url:
+            return ""
+        parsed = urlparse(self.config.webhook_url)
+        if not parsed.scheme or not parsed.netloc:
+            return ""
+        return f"{parsed.scheme}://{parsed.netloc}/replies"
+
+    def fetch_replies(self, reply_url: str) -> tuple[bool, list[dict[str, Any]] | str]:
+        query = urlencode({"device_name": self.config.device_name})
+        connector = "&" if "?" in reply_url else "?"
+        url = f"{reply_url}{connector}{query}"
+        request = Request(url, headers=self.build_headers())
+        try:
+            with urlopen(request, timeout=self.config.request_timeout_seconds) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+                replies = payload.get("replies", [])
+                if not isinstance(replies, list):
+                    return False, "Reply payload is not a list"
+                return True, replies
+        except HTTPError as exc:
+            return False, f"HTTP {exc.code}"
+        except URLError as exc:
+            return False, f"connection failed: {exc.reason}"
+        except Exception as exc:  # pragma: no cover - safety net
+            return False, f"unexpected error: {exc}"
+
+    def acknowledge_reply(self, reply_id: str) -> None:
+        reply_url = self.resolve_reply_poll_url()
+        if not reply_url:
+            return
+        ack_url = reply_url.rstrip("/") + "/ack"
+        payload = {
+            "device_name": self.config.device_name,
+            "reply_id": reply_id,
+        }
+        request = Request(
+            ack_url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers=self.build_headers({"Content-Type": "application/json"}),
+            method="POST",
+        )
+        try:
+            with urlopen(request, timeout=self.config.request_timeout_seconds):
+                return
+        except Exception:
+            return
+
+    def build_headers(self, extra: dict[str, str] | None = None) -> dict[str, str]:
+        headers: dict[str, str] = {}
+        if self.config.bridge_token:
+            headers["Authorization"] = f"Bearer {self.config.bridge_token}"
+        if extra:
+            headers.update(extra)
+        return headers
 
 
 def print_config_summary(config: AppConfig) -> None:

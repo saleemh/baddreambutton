@@ -19,6 +19,7 @@ RED: Color = (255, 0, 0)
 GREEN: Color = (0, 255, 0)
 BLUE: Color = (0, 0, 255)
 YELLOW: Color = (255, 180, 0)
+PURPLE: Color = (180, 0, 255)
 
 
 @dataclass
@@ -80,6 +81,13 @@ class SenseHatDisplay:
             time.sleep(0.2)
             self._fill(BLACK)
             time.sleep(0.1)
+
+    def flash_reply(self) -> None:
+        for _ in range(2):
+            self._fill(self._scale(PURPLE))
+            time.sleep(0.18)
+            self._fill(BLACK)
+            time.sleep(0.08)
 
     def show_text(self, text: str, color: Color = WHITE) -> None:
         if self._sense is None:

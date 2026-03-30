@@ -45,6 +45,7 @@ The app already handles the setup and runtime work, so this guide focuses on:
 The prototype app lives here:
 
 - `apps/pi-prototype-cli/`
+- for the two-way WhatsApp version, pair it with `openclaw-whatsapp-bridge.md`
 
 Main entry point:
 
@@ -133,6 +134,7 @@ When the app is running:
 - the LED matrix shows current device state
 - the event is logged locally
 - if a webhook is configured, the event is posted there
+- if a reply poll URL is configured, WhatsApp replies can be shown on the LEDs
 
 ## LED States
 

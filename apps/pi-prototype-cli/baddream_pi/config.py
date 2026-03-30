@@ -16,6 +16,9 @@ class AppConfig:
     message: str
     webhook_url: str
     alert_mode: str
+    bridge_token: str
+    reply_poll_url: str
+    reply_poll_seconds: int
     led_brightness: float
     cooldown_seconds: int
     request_timeout_seconds: int
@@ -28,6 +31,9 @@ class AppConfig:
             message="A bad dream occurred and help is requested.",
             webhook_url="",
             alert_mode="sms_only",
+            bridge_token="",
+            reply_poll_url="",
+            reply_poll_seconds=5,
             led_brightness=0.4,
             cooldown_seconds=5,
             request_timeout_seconds=10,

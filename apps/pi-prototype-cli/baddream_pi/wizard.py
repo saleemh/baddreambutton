@@ -94,6 +94,8 @@ class SetupWizard:
             ("message", "Alert message", self.config.message),
             ("webhook_url", "Webhook URL (leave blank for local-only mode)", self.config.webhook_url),
             ("alert_mode", "Alert mode", self.config.alert_mode),
+            ("bridge_token", "Bridge token (optional)", self.config.bridge_token),
+            ("reply_poll_url", "Reply poll URL (optional)", self.config.reply_poll_url),
             ("healthcheck_url", "Healthcheck URL (optional)", self.config.healthcheck_url),
         ]
 
@@ -105,12 +107,16 @@ class SetupWizard:
         led_brightness = self.prompt_float("LED brightness", self.config.led_brightness, 0.05, 1.0)
         cooldown = self.prompt_int("Cooldown seconds", self.config.cooldown_seconds, 0)
         timeout = self.prompt_int("Request timeout seconds", self.config.request_timeout_seconds, 1)
+        reply_poll_seconds = self.prompt_int("Reply poll interval seconds", self.config.reply_poll_seconds, 1)
 
         self.config = AppConfig(
             device_name=updates["device_name"],
             message=updates["message"],
             webhook_url=updates["webhook_url"],
             alert_mode=updates["alert_mode"],
+            bridge_token=updates["bridge_token"],
+            reply_poll_url=updates["reply_poll_url"],
+            reply_poll_seconds=reply_poll_seconds,
             healthcheck_url=updates["healthcheck_url"],
             led_brightness=led_brightness,
             cooldown_seconds=cooldown,

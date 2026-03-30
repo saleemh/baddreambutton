@@ -18,6 +18,7 @@ It is designed to run over a normal terminal session, including `ssh` or `Raspbe
 - listens for the `Sense HAT` center joystick press
 - shows status on the LED matrix
 - logs and sends alert events to a webhook
+- can poll for inbound replies from a bridge service and scroll them on the LEDs
 
 ## App Structure
 
